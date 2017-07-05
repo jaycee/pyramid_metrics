@@ -1,3 +1,5 @@
+*.pyc
+*.pyo
 .coverage
 coverage.xml
 nosetests.xml
@@ -6,3 +8,10 @@ nosetests.xml
 *.egg-info/
 .tox
 dist/
+bin/
+build/
+include/
+lib/
+local/
+man/
+pip-selfcheck.json
