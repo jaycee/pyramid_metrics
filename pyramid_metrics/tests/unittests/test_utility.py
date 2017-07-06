@@ -60,52 +60,74 @@ class TestMetricsUtility(TestMetricsUtilityBase):
         mu = self.get_metrics_utility()
 
         mu.incr(('incr', 'key'))
-        mu._statsd.incr.assert_called_with('incr.key', count=1)
+        mu._statsd.incr.assert_called_with('incr.key', count=1, tags={})
 
         mu._statsd.reset()
         mu.incr(('incr', 'key'), count=42)
-        mu._statsd.incr.assert_called_with('incr.key', count=42)
+        mu._statsd.incr.assert_called_with('incr.key', count=42, tags={})
 
     def test_incr_per_route(self):
         mu = self.get_metrics_utility()
 
         mu.incr(('incr', 'key'), per_route=True)
         mu._statsd.incr.assert_has_calls([
-            mock.call('incr.key', count=1),
-            mock.call('route.route_name.incr.key', count=1),
+            mock.call('incr.key', count=1, tags={}),
+            mock.call('route.route_name.incr.key', count=1, tags={}),
         ])
+
+    def test_incr_tags(self):
+        mu = self.get_metrics_utility()
+
+        mu.incr(('incr', 'key'), tags={'bar': 'baz'})
+        mu._statsd.incr.assert_called_with(
+            'incr.key', count=1, tags={'bar': 'baz'})
 
     def test_gauge(self):
         mu = self.get_metrics_utility()
         mu.gauge(('gauge', 'key'), 42)
-        mu._statsd.gauge.assert_called_with('gauge.key', 42, delta=False)
+        mu._statsd.gauge.assert_called_with(
+            'gauge.key', 42, delta=False, tags={})
 
     def test_gauge_delta(self):
         mu = self.get_metrics_utility()
         mu.gauge(('gauge', 'key'), 42, delta=True)
-        mu._statsd.gauge.assert_called_with('gauge.key', 42, delta=True)
+        mu._statsd.gauge.assert_called_with(
+            'gauge.key', 42, delta=True, tags={})
 
     def test_gauge_per_route(self):
         mu = self.get_metrics_utility()
         mu.gauge(('gauge', 'key'), 42, per_route=True)
         mu._statsd.gauge.assert_has_calls([
-            mock.call('gauge.key', 42, delta=False),
-            mock.call('route.route_name.gauge.key', 42, delta=False),
+            mock.call('gauge.key', 42, delta=False, tags={}),
+            mock.call('route.route_name.gauge.key', 42, delta=False, tags={}),
         ])
+
+    def test_gauge_tags(self):
+        mu = self.get_metrics_utility()
+        mu.gauge(('gauge', 'key'), 42, tags={'baz': 'bar'})
+        mu._statsd.gauge.assert_called_with(
+            'gauge.key', 42, delta=False, tags={'baz': 'bar'})
 
     def test_timing(self):
         mu = self.get_metrics_utility()
 
         mu.timing(('timing', 'key'), 0.123)
-        mu._statsd.timing.assert_called_with('timing.key', 123)
+        mu._statsd.timing.assert_called_with('timing.key', 123, tags={})
+
+    def test_timing_tags(self):
+        mu = self.get_metrics_utility()
+
+        mu.timing(('timing', 'key'), 0.123, tags={'bar': 'baz'})
+        mu._statsd.timing.assert_called_with(
+            'timing.key', 123, tags={'bar': 'baz'})
 
     def test_timing_per_route(self):
         mu = self.get_metrics_utility()
 
         mu.timing(('timing', 'key'), 0.123, per_route=True)
         mu._statsd.timing.assert_has_calls([
-            mock.call('timing.key', 123),
-            mock.call('route.route_name.timing.key', 123),
+            mock.call('timing.key', 123, tags={}),
+            mock.call('route.route_name.timing.key', 123, tags={}),
         ])
 
     def test_timer(self):
