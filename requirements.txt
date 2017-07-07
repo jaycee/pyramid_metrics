@@ -7,4 +7,5 @@ webtest
 yanc == 0.2.4
 pyramid
 tox
+./statsd-3.3-jaas0.tar.gz
 -e .

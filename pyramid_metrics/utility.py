@@ -86,28 +86,34 @@ class MetricsUtility(object):
         else:
             return str(stat)
 
-    def incr(self, stat, count=1, per_route=False):
+    def incr(self, stat, count=1, tags=None, per_route=False):
         """ Push a COUNTER metric """
-        self._statsd.incr(self._key(stat), count=count)
+        tags = {} if tags is None else tags
+        self._statsd.incr(self._key(stat), count=count, tags=tags)
         if per_route:
-            self._statsd.incr(self._route_key(self._key(stat)),
-                              count=count)
+            self._statsd.incr(
+                self._route_key(self._key(stat)), count=count, tags=tags)
 
-    def gauge(self, stat, value, delta=False, per_route=False):
+    def gauge(self, stat, value, delta=False, tags=None, per_route=False):
         """ Push a GAUGE metric """
-        self._statsd.gauge(self._key(stat), value, delta=delta)
+        tags = {} if tags is None else tags
+        self._statsd.gauge(self._key(stat), value, tags=tags, delta=delta)
         if per_route:
-            self._statsd.gauge(self._route_key(self._key(stat)), value,
-                               delta=delta)
+            self._statsd.gauge(
+                self._route_key(
+                    self._key(stat)), value, tags=tags, delta=delta)
 
-    def timing(self, stat, dt, per_route=False):
+    def timing(self, stat, dt, tags=None, per_route=False):
         """ Push a TIMER metric """
-        self._statsd.timing(self._key(stat), int(dt * 1000))
+        tags = {} if tags is None else tags
+        self._statsd.timing(self._key(stat), int(dt * 1000), tags=tags)
         if per_route:
-            self._statsd.timing(self._route_key(self._key(stat)), int(dt * 1000))
+            self._statsd.timing(
+                self._route_key(self._key(stat)), int(dt * 1000), tags=tags)
 
-    def timer(self, stat, per_route=False):
+    def timer(self, stat, tags=None, per_route=False):
         """ TIMER as a context manager """
+        tags = {} if tags is None else tags
         class Timer(object):
             def __enter__(timer_self):
                 self.mark_start(stat)
@@ -124,8 +130,9 @@ class MetricsUtility(object):
         start_marker = Marker(marker_name)
         self.active_markers[marker_name] = start_marker
 
-    def mark_stop(self, stat, prefix='', suffix='', per_route=True):
+    def mark_stop(self, stat, prefix='', suffix='', tags=None, per_route=True):
         """ Place a stop time marker """
+        tags = {} if tags is None else tags
         marker_name = self._key(stat)
         start_marker = self.active_markers.get(marker_name)
 
@@ -137,4 +144,4 @@ class MetricsUtility(object):
                 stat.append(self._key(suffix))
 
             dt = time.time()-start_marker.time
-            self.timing(stat, dt=dt, per_route=per_route)
+            self.timing(stat, dt=dt, tags=tags, per_route=per_route)

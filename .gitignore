@@ -14,4 +14,5 @@ include/
 lib/
 local/
 man/
+pystatsd-telegraf/
 pip-selfcheck.json
